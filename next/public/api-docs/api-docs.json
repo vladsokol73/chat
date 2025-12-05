@@ -1,0 +1,2797 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "GChat API",
+        "description": "Документация API для проекта GChat",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Текущий пользователь",
+                "operationId": "me",
+                "responses": {
+                    "200": {
+                        "description": "User or guest",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "properties": {
+                                                        "authenticated": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "user": {
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Выход из сессии",
+                "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "Logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chats": {
+            "get": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Список чатов (cursor pagination)",
+                "operationId": "getChats",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_CursorParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_LimitParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_DirectionParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_SortParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chats fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ChatListCursorPaginatedDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/chats/{chatId}": {
+            "get": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Детали чата (сообщения с cursor pagination)",
+                "operationId": "getChatById",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/ChatDetailRequest_ChatIdParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_CursorParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_LimitParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetChatsRequest_DirectionParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chat detail fetched",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ChatDetailCursorPaginatedDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/chats/{chatId}/messages": {
+            "post": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Отправка текстового сообщения (с optional-медиа) в чат",
+                "operationId": "sendChatMessage",
+                "parameters": [
+                    {
+                        "name": "chatId",
+                        "in": "path",
+                        "description": "UUID чата",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "text"
+                                ],
+                                "properties": {
+                                    "text": {
+                                        "type": "string",
+                                        "maxLength": 4096,
+                                        "example": "Привет! Как дела?"
+                                    },
+                                    "messageId": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                                    },
+                                    "media_ids": {
+                                        "description": "Массив ID временных медиа (media.id), загруженных через /chats/{chatId}/media",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Message enqueued successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/chats/{chatId}/read": {
+            "post": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Пометить все непрочитанные сообщения в чате как прочитанные",
+                "operationId": "markChatMessagesRead",
+                "parameters": [
+                    {
+                        "name": "chatId",
+                        "in": "path",
+                        "description": "UUID чата",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages marked as read successfully"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/chats/{chatId}/status": {
+            "put": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Обновить статус чата",
+                "operationId": "updateChatStatus",
+                "parameters": [
+                    {
+                        "name": "chatId",
+                        "in": "path",
+                        "description": "UUID чата",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "auto",
+                                            "manual",
+                                            "blocked"
+                                        ],
+                                        "example": "manual"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Chat status updated successfully"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/chats/media": {
+            "post": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Загрузка медиа-файла для последующей отправки сообщения",
+                "operationId": "uploadChatMedia",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "description": "Файл медиа (изображение, видео, документ и т.д.)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Media uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/MessageMediaDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/clients/{clientId}": {
+            "put": {
+                "tags": [
+                    "Client"
+                ],
+                "summary": "Обновить данные клиента",
+                "operationId": "updateClient",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/UpdateClientRequest_ClientIdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateClientDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Client updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string"
+                                                        },
+                                                        "avatar": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        },
+                                                        "comment": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    }
+                }
+            }
+        },
+        "/custom-fields": {
+            "get": {
+                "tags": [
+                    "CustomField"
+                ],
+                "summary": "Список кастомных полей",
+                "operationId": "listCustomFields",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/GetCustomFields_CursorParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetCustomFields_LimitParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetCustomFields_DirectionParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CustomFieldListCursorPaginatedDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "CustomField"
+                ],
+                "summary": "Создать кастомное поле",
+                "operationId": "createCustomField",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreCustomFieldRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CustomFieldDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    }
+                }
+            }
+        },
+        "/custom-fields/{id}": {
+            "get": {
+                "tags": [
+                    "CustomField"
+                ],
+                "summary": "Получить кастомное поле",
+                "operationId": "getCustomField",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CustomFieldIdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CustomFieldDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "CustomField"
+                ],
+                "summary": "Обновить кастомное поле",
+                "operationId": "updateCustomField",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CustomFieldIdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCustomFieldRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/CustomFieldDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "CustomField"
+                ],
+                "summary": "Удалить кастомное поле",
+                "operationId": "deleteCustomField",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CustomFieldIdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/funnels": {
+            "get": {
+                "tags": [
+                    "Funnel"
+                ],
+                "summary": "Список воронок",
+                "operationId": "listFunnels",
+                "responses": {
+                    "200": {
+                        "description": "Funnels fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/FunnelDto"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Funnel"
+                ],
+                "summary": "Создать воронку",
+                "operationId": "createFunnel",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FunnelDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Funnel created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/FunnelDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/funnels/{id}": {
+            "put": {
+                "tags": [
+                    "Funnel"
+                ],
+                "summary": "Обновить воронку",
+                "operationId": "updateFunnel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "7b6f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FunnelDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Funnel updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/FunnelDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Funnel"
+                ],
+                "summary": "Удалить воронку",
+                "operationId": "deleteFunnel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "example": "7b6f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Funnel deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "nullable": true
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Funnel deleted successfully"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/funnels/send-message": {
+            "post": {
+                "tags": [
+                    "Funnel"
+                ],
+                "summary": "Отправка сообщения пользователю из туннеля",
+                "operationId": "sendFunnelMessage",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "user": {
+                                        "description": "ID чата / пользовательский идентификатор",
+                                        "type": "string",
+                                        "example": "7250929534"
+                                    },
+                                    "message": {
+                                        "description": "Текст сообщения",
+                                        "type": "string",
+                                        "example": "Привет! Как дела?"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Сообщение поставлено в очередь",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/integrations": {
+            "get": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Список интеграций",
+                "operationId": "listIntegrations",
+                "responses": {
+                    "200": {
+                        "description": "Integrations fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/IntegrationDto"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Создать интеграцию",
+                "operationId": "createIntegration",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/IntegrationDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Integration created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/IntegrationDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/integrations/{id}": {
+            "get": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Получить интеграцию по ID",
+                "operationId": "getIntegration",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID интеграции (UUID)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/IntegrationDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Обновить интеграцию",
+                "operationId": "updateIntegration",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID интеграции (UUID)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/IntegrationDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Integration updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/IntegrationDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Удалить интеграцию",
+                "operationId": "deleteIntegration",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID интеграции (UUID)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Integration deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/webhook/integration/{integrationId}": {
+            "post": {
+                "tags": [
+                    "Integration"
+                ],
+                "summary": "Унифицированный webhook для интеграций",
+                "operationId": "integrationWebhook",
+                "parameters": [
+                    {
+                        "name": "integrationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/sso-exchange": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Обмен ERP JWT на сессию",
+                "operationId": "ssoExchange",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "properties": {
+                                                        "user": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "avatar": {
+                                                                    "type": "string",
+                                                                    "nullable": true
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestResponse"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/UnauthorizedResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/tags": {
+            "get": {
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Список тегов",
+                "operationId": "listTags",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/GetTags_CursorParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetTags_LimitParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/GetTags_DirectionParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TagListCursorPaginatedDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Создать тег",
+                "operationId": "createTag",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreTagRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TagDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    }
+                }
+            }
+        },
+        "/tags/{id}": {
+            "get": {
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Получить тег",
+                "operationId": "getTag",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TagIdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TagDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Обновить тег",
+                "operationId": "updateTag",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TagIdParam"
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTagRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/TagDto"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationErrorResponse"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Удалить тег",
+                "operationId": "deleteTag",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TagIdParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFoundResponse"
+                    }
+                }
+            }
+        },
+        "/api/translate": {
+            "get": {
+                "tags": [
+                    "Translator"
+                ],
+                "summary": "Перевести текст",
+                "operationId": "translate",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/TranslateRequest_LangParam"
+                    },
+                    {
+                        "$ref": "#/components/parameters/TranslateRequest_TextParam"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Translation successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "properties": {
+                                                        "translation": {
+                                                            "type": "string",
+                                                            "example": "Translated text"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequestResponse"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/mock/attack/chats": {
+            "post": {
+                "tags": [
+                    "Mock"
+                ],
+                "summary": "Сгенерировать моковые чаты",
+                "description": "Запускает задачу, которая создаёт тестовые чаты и рассылает их по WebSocket (Reverb).",
+                "operationId": "generateChats",
+                "responses": {
+                    "200": {
+                        "description": "Mock chats generation started",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Mock chats generation started"
+                                                },
+                                                "data": {
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        },
+        "/api/mock/attack/chat": {
+            "post": {
+                "tags": [
+                    "Mock"
+                ],
+                "summary": "Сгенерировать моковые сообщения (опционально в конкретном чате)",
+                "description": "Создаёт набор тестовых сообщений. Если chatId не указан — сообщения генерируются для случайных чатов.",
+                "operationId": "generateMessages",
+                "parameters": [
+                    {
+                        "name": "chatId",
+                        "in": "query",
+                        "description": "Опциональный ID чата (UUID). Если указан — сообщения генерируются в этот чат",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MockStartChatMessagesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mock messages generation started",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Mock messages generation started"
+                                                },
+                                                "data": {
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerErrorResponse"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChatDetailCursorPaginatedDto": {
+                "description": "Chat detail with messages paginated via cursor",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "client": {
+                        "$ref": "#/components/schemas/ClientDto"
+                    },
+                    "messages": {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/MessageDto"
+                                }
+                            },
+                            "nextCursor": {
+                                "type": "string",
+                                "example": "eyJpZCI6Ij...",
+                                "nullable": true
+                            },
+                            "prevCursor": {
+                                "type": "string",
+                                "example": null,
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ChatDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "0f2c7b3a-0e97-4a2f-9a1d-9b2b6e3e9a1c"
+                    },
+                    "client": {
+                        "$ref": "#/components/schemas/ClientDto"
+                    },
+                    "messages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageDto"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ChatListCursorPaginatedDto": {
+                "description": "Cursor-based paginated response with ChatListDto items",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/CursorPaginatedDto"
+                    },
+                    {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ChatListDto"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "ChatListDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "0f2c7b3a-0e97-4a2f-9a1d-9b2b6e3e9a1c"
+                    },
+                    "client": {
+                        "$ref": "#/components/schemas/ClientShortDto"
+                    },
+                    "last_message": {
+                        "$ref": "#/components/schemas/MessageSummaryDto"
+                    },
+                    "integration_name": {
+                        "type": "string",
+                        "example": "Telegram"
+                    },
+                    "unread_count": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "last_message_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-23T10:00:00+00:00"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/ChatStatus"
+                    }
+                },
+                "type": "object"
+            },
+            "MessageDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "9f3a2b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c"
+                    },
+                    "chat_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "0f2c7b3a-0e97-4a2f-9a1d-9b2b6e3e9a1c"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+                        "nullable": true
+                    },
+                    "direction": {
+                        "description": "Направление сообщения: in (входящее), out (исходящее)",
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/MessageType"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/MessageStatus"
+                    },
+                    "text": {
+                        "type": "string",
+                        "example": "This is a generated mock message."
+                    },
+                    "media_group_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageMediaDto"
+                        },
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-23T10:01:00+00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "MessageMediaDto": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "file_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "file_unique_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "width": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "height": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "mime": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "thumbnail": {
+                        "nullable": true
+                    },
+                    "public_url": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "MessageSummaryDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "c7d9f3c2-6a0e-4d7a-8f7a-1b2e3c4d5e6f"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/MessageType"
+                    },
+                    "text": {
+                        "type": "string",
+                        "example": "Hello, this is a mock message!"
+                    },
+                    "media_group_id": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "media": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageMediaDto"
+                        },
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-23T10:00:00+00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "ClientDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "b1a4b9f2-3c6d-4e8f-9a1b-2c3d4e5f6a7b"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Week"
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "example": "https://wallpapers.com/images/hd/blue-cat-eye-cute-british-shorthair-berwrnysmiqby7j0.jpg",
+                        "nullable": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "88005553535"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagDto"
+                        },
+                        "example": [
+                            {
+                                "id": "t1",
+                                "name": "vip",
+                                "color": "#FF9900"
+                            },
+                            {
+                                "id": "t2",
+                                "name": "new"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "comment": {
+                        "type": "string",
+                        "example": "Example of comment",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ClientShortDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "b1a4b9f2-3c6d-4e8f-9a1b-2c3d4e5f6a7b"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Week"
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "example": "https://wallpapers.com/images/hd/blue-cat-eye-cute-british-shorthair-berwrnysmiqby7j0.jpg",
+                        "nullable": true
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagDto"
+                        },
+                        "example": [
+                            {
+                                "id": "t1",
+                                "name": "vip",
+                                "color": "#FF9900"
+                            },
+                            {
+                                "id": "t2",
+                                "name": "new"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TagDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "b8f3a1c2-1234-4a5b-9cde-112233445566"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "vip"
+                    },
+                    "color": {
+                        "type": "string",
+                        "example": "#FF9900",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateClientDto": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "avatar": {
+                        "description": "Avatar file (image)",
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 512,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CustomFieldDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "entityType": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {},
+                        "nullable": true
+                    },
+                    "isRequired": {
+                        "type": "boolean"
+                    },
+                    "integrationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CustomFieldListCursorPaginatedDto": {
+                "description": "Cursor-based paginated response with CustomFieldDto items",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/CursorPaginatedDto"
+                    },
+                    {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/CustomFieldDto"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "FunnelDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "7b6f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Welcome Funnel"
+                    },
+                    "integration_id": {
+                        "type": "string",
+                        "example": "7b6f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b"
+                    },
+                    "api_key": {
+                        "type": "string",
+                        "example": "app-SyO70Aa9LA0p5VNtSmuH88Ib",
+                        "nullable": true
+                    },
+                    "api_key_mask": {
+                        "type": "string",
+                        "example": "app-SyO*****H88Ib",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-06T12:00:00Z",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-06T12:00:00Z",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "IntegrationDto": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "7b6f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Main Telegram Bot"
+                    },
+                    "service": {
+                        "$ref": "#/components/schemas/ServiceType"
+                    },
+                    "token": {
+                        "type": "string",
+                        "example": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+                        "nullable": true
+                    },
+                    "token_mask": {
+                        "type": "string",
+                        "example": "123*****abc",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CursorPaginatedDto": {
+                "description": "Generic cursor-based paginated response wrapper",
+                "properties": {
+                    "items": {
+                        "description": "List of items for the current page",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "nextCursor": {
+                        "type": "string",
+                        "example": "eyJpZCI6Ij...",
+                        "nullable": true
+                    },
+                    "prevCursor": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TagListCursorPaginatedDto": {
+                "description": "Cursor-based paginated response with TagDto items",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/CursorPaginatedDto"
+                    },
+                    {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/TagDto"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "ChatStatus": {
+                "description": "Chat statuses: auto - automatic processing (funnel), manual - operator processing, blocked - client blocked the bot",
+                "type": "string",
+                "enum": [
+                    "auto",
+                    "manual",
+                    "blocked"
+                ]
+            },
+            "MessageStatus": {
+                "description": "Message status",
+                "type": "string",
+                "enum": [
+                    "queued",
+                    "sent",
+                    "delivered",
+                    "read",
+                    "failed"
+                ]
+            },
+            "MessageType": {
+                "description": "Message type",
+                "type": "string",
+                "enum": [
+                    "text",
+                    "photo",
+                    "video",
+                    "animation",
+                    "document",
+                    "audio",
+                    "voice",
+                    "video_note",
+                    "sticker",
+                    "funnel",
+                    "system"
+                ]
+            },
+            "ServiceType": {
+                "description": "Type of integration service",
+                "type": "string",
+                "enum": [
+                    "telegram"
+                ]
+            },
+            "StoreCustomFieldRequest": {
+                "required": [
+                    "key",
+                    "name",
+                    "entity_type",
+                    "type"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "maxLength": 64
+                    },
+                    "type": {
+                        "type": "string",
+                        "maxLength": 64
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {},
+                        "nullable": true
+                    },
+                    "is_required": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "integration_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateCustomFieldRequest": {
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    },
+                    "type": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "nullable": true
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {},
+                        "nullable": true
+                    },
+                    "is_required": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "integration_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StoreTagRequest": {
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "color": {
+                        "type": "string",
+                        "maxLength": 32,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateTagRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "color": {
+                        "type": "string",
+                        "maxLength": 32,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "MockStartChatMessagesRequest": {
+                "properties": {
+                    "text": {
+                        "description": "Текст создаваемых сообщений",
+                        "type": "string",
+                        "example": "Тестовое сообщение"
+                    },
+                    "type": {
+                        "description": "Тип сообщения",
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "image",
+                            "system"
+                        ],
+                        "example": "text"
+                    },
+                    "count": {
+                        "description": "Сколько сообщений создать (опционально)",
+                        "type": "integer",
+                        "example": 5
+                    }
+                },
+                "type": "object"
+            },
+            "ApiResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Request successful"
+                    },
+                    "data": {
+                        "nullable": true
+                    },
+                    "errors": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Meta"
+                            }
+                        ],
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Meta": {
+                "properties": {
+                    "next_cursor": {
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "prev_cursor": {
+                        "type": "integer",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "BadRequestResponse": {
+                "description": "Bad request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid request parameters"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "field": "Validation error message"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ForbiddenResponse": {
+                "description": "Forbidden",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access denied"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "NotFoundResponse": {
+                "description": "Resource not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Resource not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ServerErrorResponse": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "UnauthorizedResponse": {
+                "description": "Unauthorized",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "ValidationErrorResponse": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                },
+                                {
+                                    "properties": {
+                                        "data": {
+                                            "nullable": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "field1": [
+                                                    "The field1 is required."
+                                                ],
+                                                "field2": [
+                                                    "The field2 must be an integer."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "ChatDetailRequest_ChatIdParam": {
+                "name": "chatId",
+                "in": "path",
+                "description": "ID чата",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "GetChatsRequest_CursorParam": {
+                "name": "cursor",
+                "in": "query",
+                "description": "Курсор пагинации (base64-json: {\"ts\":\"ISO\",\"id\":\"uuid\"})",
+                "schema": {
+                    "type": "string",
+                    "nullable": true
+                }
+            },
+            "GetChatsRequest_LimitParam": {
+                "name": "limit",
+                "in": "query",
+                "description": "Количество чатов",
+                "schema": {
+                    "type": "integer",
+                    "default": 50
+                }
+            },
+            "GetChatsRequest_DirectionParam": {
+                "name": "direction",
+                "in": "query",
+                "description": "Направление пагинации",
+                "schema": {
+                    "type": "string",
+                    "default": "down",
+                    "enum": [
+                        "up",
+                        "down"
+                    ]
+                }
+            },
+            "GetChatsRequest_SortParam": {
+                "name": "sort",
+                "in": "query",
+                "description": "Фильтр чатов: all (все кроме blocked), new (непрочитанные), my (мои), blocked (заблокированные)",
+                "schema": {
+                    "type": "string",
+                    "default": "all",
+                    "enum": [
+                        "all",
+                        "new",
+                        "my",
+                        "blocked"
+                    ]
+                }
+            },
+            "MarkChatMessagesReadRequest_ChatIdParam": {
+                "name": "chatId",
+                "in": "path",
+                "description": "ID чата",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "UpdateChatStatusRequest_ChatIdParam": {
+                "name": "chatId",
+                "in": "path",
+                "description": "ID чата",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "UpdateClientRequest_ClientIdParam": {
+                "name": "clientId",
+                "in": "path",
+                "description": "UUID клиента",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "GetCustomFields_CursorParam": {
+                "name": "cursor",
+                "in": "query",
+                "description": "Cursor for pagination",
+                "schema": {
+                    "type": "string",
+                    "nullable": true
+                }
+            },
+            "GetCustomFields_LimitParam": {
+                "name": "limit",
+                "in": "query",
+                "description": "Items per page (1..200)",
+                "schema": {
+                    "type": "integer",
+                    "default": 50
+                }
+            },
+            "GetCustomFields_DirectionParam": {
+                "name": "direction",
+                "in": "query",
+                "description": "Pagination direction",
+                "schema": {
+                    "type": "string",
+                    "default": "down",
+                    "enum": [
+                        "up",
+                        "down"
+                    ]
+                }
+            },
+            "CustomFieldIdParam": {
+                "name": "id",
+                "in": "path",
+                "description": "Custom field UUID",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "GetTags_CursorParam": {
+                "name": "cursor",
+                "in": "query",
+                "description": "Cursor for pagination",
+                "schema": {
+                    "type": "string",
+                    "nullable": true
+                }
+            },
+            "GetTags_LimitParam": {
+                "name": "limit",
+                "in": "query",
+                "description": "Items per page (1..200)",
+                "schema": {
+                    "type": "integer",
+                    "default": 50
+                }
+            },
+            "GetTags_DirectionParam": {
+                "name": "direction",
+                "in": "query",
+                "description": "Pagination direction",
+                "schema": {
+                    "type": "string",
+                    "default": "down",
+                    "enum": [
+                        "up",
+                        "down"
+                    ]
+                }
+            },
+            "TagIdParam": {
+                "name": "id",
+                "in": "path",
+                "description": "Tag UUID",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            },
+            "TranslateRequest_LangParam": {
+                "name": "lang",
+                "in": "query",
+                "description": "Язык перевода",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "maxLength": 32
+                }
+            },
+            "TranslateRequest_TextParam": {
+                "name": "text",
+                "in": "query",
+                "description": "Текст для перевода",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "maxLength": 8192
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Chat",
+            "description": "Chat"
+        },
+        {
+            "name": "Client",
+            "description": "Client"
+        },
+        {
+            "name": "CustomField",
+            "description": "CustomField"
+        },
+        {
+            "name": "Funnel",
+            "description": "Funnel"
+        },
+        {
+            "name": "Integration",
+            "description": "Integration"
+        },
+        {
+            "name": "Tag",
+            "description": "Tag"
+        },
+        {
+            "name": "Translator",
+            "description": "Translator"
+        },
+        {
+            "name": "Mock",
+            "description": "Mock"
+        }
+    ]
+}

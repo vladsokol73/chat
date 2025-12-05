@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      # Laravel backend
+      - 'app/**'
+      - 'routes/**'
+      - 'config/**'
+      - 'database/**'
+      - 'bootstrap/**'
+      - 'composer.json'
+      - 'composer.lock'
+
+      # Next frontend
+      - 'next/**'
+
+permissions:
+  contents: write
+
+jobs:
+
+  laravel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, json, pdo_pgsql
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run Pint
+        run: ./vendor/bin/pint --test
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse app --memory-limit=512M
+
+      - name: Generate Swagger
+        run: php artisan l5-swagger:generate
+
+      - name: Verify Swagger file exists
+        run: |
+          if [ ! -f next/public/api-docs/api-docs.json ]; then
+            echo "❌ Swagger not found"
+            exit 1
+          fi
+          echo "✅ Swagger OK"
+
+      - name: Commit updated Swagger
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config push.autoSetupRemote true
+
+          git fetch origin $BRANCH_NAME
+          git checkout $BRANCH_NAME
+
+          git add next/public/api-docs/api-docs.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update api-docs.json [auto]"
+            git push origin $BRANCH_NAME
+          fi
+
+
+  next:
+    needs: laravel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository (latest PR commit)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Fetch latest changes (including updated Swagger)
+        run: |
+          git fetch origin ${{ github.head_ref }} --depth=1
+          git reset --hard origin/${{ github.head_ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: next/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: next
+        run: npm ci
+
+      - name: Run API codegen
+        working-directory: next
+        run: npm run codegen
+
+      - name: TypeScript type check
+        working-directory: next
+        run: npm run type:check
+
+      - name: Build Next.js
+        working-directory: next
+        run: npm run build

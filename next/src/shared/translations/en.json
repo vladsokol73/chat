@@ -1,0 +1,19 @@
+{
+    "buttons": {
+        "send": "Send",
+        "cancel": "Cancel",
+        "ok": "OK"
+    },
+    "placeholders": {
+        "search": "Search...",
+        "typeMessage": "Type a message...",
+        "searchMessages": "Search messages..."
+    },
+    "auth": {
+        "exchangeFailed": "Ошибка авторизации: обмен токена не удался.",
+        "stateMismatch": "Ошибка безопасности: несовпадение state.",
+        "callbackError": "Неожиданная ошибка при входе.",
+        "missingToken": "Не удалось получить токен авторизации.",
+        "exchangeError": "Ошибка соединения с сервером авторизации."
+    }
+}

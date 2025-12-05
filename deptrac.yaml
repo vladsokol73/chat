@@ -1,0 +1,208 @@
+deptrac:
+  paths:
+    - ./app
+
+  exclude_files:
+    - '#vendor#'
+    - '#tests#'
+    - '#bootstrap#'
+
+  layers:
+
+    - name: Http
+      collectors:
+        - type: directory
+          value: app/Http
+
+    - name: Console
+      collectors:
+        - type: directory
+          value: app/Console
+
+    - name: Livewire
+      collectors:
+        - type: directory
+          value: app/Livewire
+
+    - name: Providers
+      collectors:
+        - type: directory
+          value: app/Providers
+
+    - name: Jobs
+      collectors:
+        - type: directory
+          value: app/Jobs
+
+    # === APPLICATION LAYER ===
+    - name: Services
+      collectors:
+        - type: directory
+          value: app/Services
+
+    - name: Repositories
+      collectors:
+        - type: directory
+          value: app/Repositories
+
+    - name: Transformers
+      collectors:
+        - type: directory
+          value: app/Transformers
+
+    - name: DTO
+      collectors:
+        - type: directory
+          value: app/DTO
+
+    - name: Contracts
+      collectors:
+        - type: directory
+          value: app/Contracts
+
+    # === DOMAIN LAYER ===
+    - name: Events
+      collectors:
+        - type: directory
+          value: app/Events
+
+    - name: Models
+      collectors:
+        - type: directory
+          value: app/Models
+
+    - name: Enums
+      collectors:
+        - type: directory
+          value: app/Enums
+
+    # === INFRASTRUCTURE / SUPPORT ===
+    - name: Support
+      collectors:
+        - type: directory
+          value: app/Support
+
+    - name: Swagger
+      collectors:
+        - type: directory
+          value: app/Swagger
+
+    - name: Pulse
+      collectors:
+        - type: directory
+          value: app/Pulse
+
+
+  ruleset:
+
+    # ==============================
+    # TOP LAYERS: Http / Livewire / Console / Providers / Jobs
+    # ==============================
+    Http:
+      - Services
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+      - Swagger
+
+    Console:
+      - Services
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+
+    Livewire:
+      - Services
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+
+    Providers:
+      - Services
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+
+    Jobs:
+      - Services
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+
+
+    # ==============================
+    # APPLICATION LAYER
+    # ==============================
+    Services:
+      - Repositories
+      - DTO
+      - Transformers
+      - Models
+      - Enums
+      - Events
+      - Support
+      - Contracts
+
+    Repositories:
+      - Models
+      - Enums
+      - Support
+      - Contracts
+
+    Transformers:
+      - DTO
+      - Models
+      - Enums
+      - Support
+      - Contracts
+
+    DTO:
+      - Enums
+      - Support
+      - Contracts
+      - Models
+
+    Contracts:
+      - Models
+      - Enums
+      - DTO
+      - Events
+      - Transformers
+      - Support
+      - Contracts
+
+    Events:
+      - DTO
+      - Models
+      - Enums
+      - Support
+      - Contracts
+
+    Models:
+      - Enums
+      - Support
+      - Contracts
+
+    Enums:
+      - Support
+      - Contracts

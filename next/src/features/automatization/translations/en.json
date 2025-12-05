@@ -1,0 +1,38 @@
+{
+    "funnels": {
+        "title": "Funnels",
+
+        "actions": {
+            "create": "Create Funnel"
+        },
+
+        "create": {
+            "title": "Create Funnel",
+            "submit": "Create",
+            "creating": "Creating..."
+        },
+
+        "form": {
+            "name": "Funnel Name",
+            "integration": "Integration",
+            "api_key": "API Key",
+
+            "placeholders": {
+                "name": "My Funnel",
+                "integration": "Select integration",
+                "api_key": "Optional API key"
+            }
+        },
+
+        "table": {
+            "columns": {
+                "name": "Name",
+                "integration_id": "Integration ID",
+                "api_key": "API Key"
+            },
+
+            "empty": "No funnels yet",
+            "loading": "Loading..."
+        }
+    }
+}

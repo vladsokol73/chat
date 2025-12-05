@@ -1,0 +1,48 @@
+{
+    "header": {
+        "userInfo": "User info",
+        "aria-label": "Header",
+        "search": "Search",
+        "emoji": "Emoji"
+    },
+    "system": {
+        "chatCreated": "Chat created",
+        "userJoined": "User joined",
+        "userLeft": "User left",
+        "today": "Today",
+        "yesterday": "Yesterday"
+    },
+    "messages": {
+        "empty": "No messages yet",
+        "loading": "Loading messages...",
+        "loadingMore": "Loading more..."
+    },
+    "user": {
+        "phone": "Phone",
+        "comment": "Comment",
+        "clickid": "clickid",
+        "product_id": "product_id",
+        "buyer": "buyer",
+        "city": "city",
+        "statistics_logs": "statistics_logs"
+    },
+    "sidebar": {
+        "loading": "Loading chats...",
+        "empty": "No chats found",
+        "loadingMore": "Loading more..."
+    },
+    "selectChat": "Select a chat",
+    "tabs": {
+        "all": "All",
+        "new": "New",
+        "mine": "Mine"
+    },
+    "actions": {
+        "star": "Star chat",
+        "reply": "Reply",
+        "download": "Download",
+        "share": "Share",
+        "search": "Search",
+        "close": "Close"
+    }
+}

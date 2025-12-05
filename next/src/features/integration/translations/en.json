@@ -1,0 +1,36 @@
+{
+    "title": "Integrations",
+
+    "actions": {
+        "create": "Create Integration"
+    },
+
+    "create": {
+        "title": "Create Integration",
+        "submit": "Create",
+        "creating": "Creating..."
+    },
+
+    "form": {
+        "name": "Name",
+        "service": "Service",
+        "token": "Token",
+
+        "placeholders": {
+            "name": "My Telegram Bot",
+            "service": "telegram",
+            "token": "123456:ABC-DEF123..."
+        }
+    },
+
+    "table": {
+        "columns": {
+            "name": "Name",
+            "service": "Service",
+            "token": "Token"
+        },
+
+        "empty": "No integrations yet",
+        "loading": "Loading..."
+    }
+}
